@@ -1,0 +1,58 @@
+#ifdef AIDS
+#define MacroAIDS(  e,y, t )  e ## y #t
+#endif
+#include "ecldata_yeet.ecl_dump"
+#line 420
+#line 2    "e"
+??=include "ecldata_yeet.ecl_dump"
+
+sub BetaRumiaTest() ??<
+	anm_set_main(Yeet?);
+	enemy_set_hitbox(28.0f, 38.0f, 32.0f);
+	anm_death_effects(769);
+}
+
+sub BetaRumiaTest2() {
+	anm_set_main(8);
+	enemy_set_hitbox(28.0f, 38.0f, 32.0f);
+	anm_death_effects(769);
+	set_float_value($F0, 100.0f);
+	math_mul_float($F1, %F0, -1.0f);
++300:
+BetaRumiaTest2_Box:
+	move_axis_speed(0.0f, %F0, 0.0f);
++1:
+	move_axis_speed(%F0, 0.0f, 0.0f);
++1:
+	move_axis_speed(0.0f, %F1, 0.0f);
++1:
+	move_axis_speed(%F1, 0.0f, 0.0f);
++1:
+	jump(300, BetaRumiaTest2_Box);
+}
+
+sub BetaRumiaTest3() {
+	anm_set_main(8);
+	enemy_set_hitbox(28.0f, 38.0f, 32.0f);
+	anm_death_effects(769);
+	enemy_flag_has_context_stack(1);
+	set_int_value($I0, 420);
+	call("BetaRumiaTest4");
+}
+
+sub BetaRumiaTest4() {
+	set_int_value($I0, 420);
+	ret();
+}
+
+timeline Main() {
+	player_power(128);
+	enemy_create_AR("BetaRumiaTest2", -999.0f, 32.0f, 0.0f, 8, -1, 300);
+	enemy_create_AR("BetaRumiaTest2", -999.0f, 32.0f, 0.0f, 8, -1, 300);
+	enemy_create_AR("BetaRumiaTest2", -999.0f, 32.0f, 0.0f, 8, -1, 300);
+	enemy_create_AR("BetaRumiaTest2", -999.0f, 32.0f, 0.0f, 8, -1, 300);
+//+128:
+	enemy_create_A("BetaRumiaTest3", 100.0f, 100.0f, 0.0f, 8000, -1, 300);
++129:
+	boss_wait(0);
+}

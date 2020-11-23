@@ -1,0 +1,6 @@
+# ninja log v5
+1	366	627442115	CMakeFiles/ECLTest3.dir/ECLTest3.c.obj	1a099626c5ecc3ac
+6	369	627442115	CMakeFiles/ECLTest3.dir/Tokenizer.c.obj	e93a50dfaf22399a
+369	1159	627442115	ECLTest3.exe	8ec0c4a3eb2186af
+1	321	627442155	CMakeFiles/ECLTest3.dir/ECLTest3.c.obj	1a099626c5ecc3ac
+321	657	627442155	ECLTest3.exe	8ec0c4a3eb2186af
