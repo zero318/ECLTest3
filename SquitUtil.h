@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 //The compiler will optimize away the empty loop
 //since it'll always terminate immediately, but it
@@ -37,10 +38,8 @@ typedef unsigned char flag;
 void* callocNonNull(size_t _Count, size_t _Size);
 void* mallocNonNull(size_t _Size);
 FILE* fopenWrapper(const char* _Filename, const char* _Mode);
-char* StringDupe(const char* StringSource);
-char* StringSizeDupe(const char* StringSource, size_t _StringSize);
-char* StringDupeToSize(const char* StringSource, size_t _BufferSize);
-char* StringSizeDupeToSize(const char* StringSource, size_t _StringSize, size_t _BufferSize);
+
+
 void ExitWithError(const char* ErrorMessageFormat, ...);
 
 #undef RequireSemicolon

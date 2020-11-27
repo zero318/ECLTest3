@@ -12,6 +12,10 @@
 #include "ECL_util.h"
 #include "Tokenizer.h"
 #include "ArgParsing.h"
+#include "SquitUtil.h"
+#include "SquitStrings.h"
+
+#include "_RegisterWatch.h"
 
 //static char* Filepath;
 //static const char (*const Options)[] = {"?", ""};
@@ -48,6 +52,7 @@ noreturn inline void PrintHelp() {
               " -M    Mapping file\n"
               " -S    Symbol file\n"
               " -f    Force overwrite mode\n"
+              " -e    Character Encoding (default ANSI)\n"
               );
 }
 
@@ -76,7 +81,7 @@ struct Args {
     uint32_t OutFile : 1;
     uint32_t SymbolFile : 1;
     uint32_t Overwrite : 1;
-    uint32_t WTF : 8;
+    uint32_t Encoding : 8;
     uint32_t Version : 16;
     char* InFilename;
     char* OutFilename;
@@ -119,10 +124,11 @@ int main(int argc, char* argv[]) {
     atexit(&CloseFilesAtExit);
     InputFile = OutputFile = MapFile = NULL;
     memset(&ArgsData, 0, sizeof(Args));
-    enum { Option, Version, File } NextArg = Option;
+    enum { Option, Version, File, Encoding } NextArg = Option;
     enum { Map, Input, Output, Symbol } NextFile;
     int ArgCount = argc;
     int i = 0;
+    size_t j;
     while (++i < ArgCount) {
         if (!strlen(argv[i])) {
             continue;
@@ -166,14 +172,17 @@ int main(int argc, char* argv[]) {
                     case 'f': case 'F':
                         ArgsData.Overwrite = true;
                         continue;
+                    case 'e': case 'E':
+                        NextArg = Encoding;
+                        continue;
                     default:
-                        ArgsData.WTF = true;
+                        //ArgsData.WTF = true;
                         printf("Unrecognized option: %s", argv[i]);
                         continue;
                 }
             case Version:
                 NextArg = Option;
-                size_t j = strlen(argv[i]);
+                j = strlen(argv[i]);
                 bool AllNumeric = true;
                 while (j > 0 && AllNumeric) {
                     AllNumeric = (bool)isdigit(argv[i][--j]);
@@ -209,6 +218,57 @@ int main(int argc, char* argv[]) {
                     default:
                         continue;
                 }
+            case Encoding:
+                NextArg = Option;
+                size_t Length = strlen(argv[i]) + 1;
+                j = Length;
+                //size_t k = 0;
+                char* EncodingTemp = callocNonNull(Length, sizeof(char));
+                while (j > 0) {
+                    --j;
+                    EncodingTemp[j] = toupper(argv[i][j]);
+                }
+                //j and k will always be 0 when reaching here
+                /*while (j < Length && EncodingTemp[j] != '\0') {
+                    if (EncodingTemp[j] == '-') {
+                        memmove(&EncodingTemp[k], &EncodingTemp[j+1], Length - j);
+                    } else {
+                        ++j;
+                        ++k;
+                    }
+                }*/
+                char* EncodingTemp2 = StringDupe(EncodingTemp);
+                char* EncodingTemp3 = StringDupe(EncodingTemp);
+                //StringCStrip3(EncodingTemp, '-');
+                //StringCStripFast(EncodingTemp2, '-');
+                //StringCStripReplaceFast(EncodingTemp3, '-', 'e');
+                StringSStrip(EncodingTemp, "-?");
+                StringSStrip(EncodingTemp2, "-?");
+                StringSStripReplace(EncodingTemp3, "-?", 'e');
+                if (strcmp(EncodingTemp, "ANSI") == 0 ) {
+                    ArgsData.Encoding = TokenANSI;
+                } else if (strcmp(EncodingTemp, "UTF8") == 0) {
+                    ArgsData.Encoding = TokenUTF8;
+                } else if (strcmp(EncodingTemp, "UTF16") == 0) {
+                    ArgsData.Encoding = TokenUTF16;
+                } else if (strcmp(EncodingTemp, "UTF32") == 0) {
+                    ArgsData.Encoding = TokenUTF32;
+                } else if (strcmp(EncodingTemp, "UCS2") == 0) {
+                    ArgsData.Encoding = TokenUCS2;
+                } else if (strcmp(EncodingTemp, "UCS4") == 0) {
+                    ArgsData.Encoding = TokenUCS4;
+                } else if (strcmp(EncodingTemp, "SHIFTJIS") == 0 || strcmp(EncodingTemp, "SJIS") == 0) {
+                    ArgsData.Encoding = TokenShiftJIS;
+                } else if (strcmp(EncodingTemp, "UNICODE") == 0) {
+                    //Let's be real, when someone says "unicode"
+                    //they probably expect it to mean UTF8.
+                    ArgsData.Encoding = TokenUTF8;
+                } else {
+                    //Don't do this plz
+                    ArgsData.Encoding = TokenDefault;
+                }
+                free(EncodingTemp);
+                continue;
         }
     }
     if (ArgsData.Help) {

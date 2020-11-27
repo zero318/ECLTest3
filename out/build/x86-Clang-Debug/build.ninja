@@ -103,6 +103,13 @@ build CMakeFiles\ECLTest3.dir\ArgParsing.c.obj: C_COMPILER__ECLTest3_Debug ..\..
   TARGET_COMPILE_PDB = CMakeFiles\ECLTest3.dir\
   TARGET_PDB = ECLTest3.pdb
 
+build CMakeFiles\ECLTest3.dir\SquitStrings.c.obj: C_COMPILER__ECLTest3_Debug ..\..\..\SquitStrings.c || cmake_object_order_depends_target_ECLTest3
+  FLAGS = -m32 -fdiagnostics-absolute-paths  /DWIN32 /D_WINDOWS /W3 /MDd /Zi /Ob0 /Od /RTC1
+  OBJECT_DIR = CMakeFiles\ECLTest3.dir
+  OBJECT_FILE_DIR = CMakeFiles\ECLTest3.dir
+  TARGET_COMPILE_PDB = CMakeFiles\ECLTest3.dir\
+  TARGET_PDB = ECLTest3.pdb
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target ECLTest3
@@ -111,7 +118,7 @@ build CMakeFiles\ECLTest3.dir\ArgParsing.c.obj: C_COMPILER__ECLTest3_Debug ..\..
 #############################################
 # Link the executable ECLTest3.exe
 
-build ECLTest3.exe: C_EXECUTABLE_LINKER__ECLTest3_Debug CMakeFiles\ECLTest3.dir\ECLTest3.c.obj CMakeFiles\ECLTest3.dir\Tokenizer.c.obj CMakeFiles\ECLTest3.dir\SquitUtil.c.obj CMakeFiles\ECLTest3.dir\Mapping.c.obj CMakeFiles\ECLTest3.dir\Symbols.c.obj CMakeFiles\ECLTest3.dir\StringStream.c.obj CMakeFiles\ECLTest3.dir\ArgParsing.c.obj
+build ECLTest3.exe: C_EXECUTABLE_LINKER__ECLTest3_Debug CMakeFiles\ECLTest3.dir\ECLTest3.c.obj CMakeFiles\ECLTest3.dir\Tokenizer.c.obj CMakeFiles\ECLTest3.dir\SquitUtil.c.obj CMakeFiles\ECLTest3.dir\Mapping.c.obj CMakeFiles\ECLTest3.dir\Symbols.c.obj CMakeFiles\ECLTest3.dir\StringStream.c.obj CMakeFiles\ECLTest3.dir\ArgParsing.c.obj CMakeFiles\ECLTest3.dir\SquitStrings.c.obj
   FLAGS = -m32 -fdiagnostics-absolute-paths  /DWIN32 /D_WINDOWS /W3 /MDd /Zi /Ob0 /Od /RTC1
   LINK_FLAGS = /machine:X86 /debug /INCREMENTAL /subsystem:console
   LINK_LIBRARIES = kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib

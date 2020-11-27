@@ -10,9 +10,14 @@
 #include <ctype.h>
 #include <limits.h>
 #include <stdnoreturn.h>
+#include <wchar.h>
+#include <wctype.h>
+#include <uchar.h>
 
 #include "Tokenizer.h"
 #include "SquitUtil.h"
+#include "SquitStrings.h"
+#include "StringStream.h"
 
 /*
 * Alright, so this file is currently a mess.
@@ -62,12 +67,6 @@ DefineConstructor(ECLToken, .value = NULL, .next = NULL, .previous = NULL);
 
 #define NotImplemented(text) printf(#text"isn't implemented yet!")
 
-typedef struct StringStream {
-    char* String;
-    char* CurrentPos;
-    size_t Pos;
-    size_t Size;
-} StringStream;
 //Yes, this uses a comma operator. It's just to maintain
 //internal state or some crap though, so whatever.
 #define StringStreamNextChar(SS) (SS.CurrentPos++, SS.String[SS.Pos++])
@@ -420,6 +419,72 @@ struct SourceToken {
     SourceToken* Next;
     size_t Line;
 };
+
+typedef unsigned char mbchar_array_t[MB_LEN_MAX];
+static const size_t TokenSizes[7] = {
+    /*TokenChar8*/      sizeof(char),
+    /*TokenChar16*/     sizeof(char16_t),
+    /*TokenChar32*/     sizeof(char32_t),
+    /*TokenWChar*/      sizeof(wchar_t),
+    /*TokenWInt*/       sizeof(wint_t),
+    /*TokenMBChar*/     sizeof(mbchar_array_t),
+    /*TokenInt*/        sizeof(int)
+};
+enum TokenSize {
+    TokenChar8 = 0,     //TokenSizes[0]
+    TokenChar16 = 1,    //TokenSizes[1]
+    TokenChar32 = 2,    //TokenSizes[2]
+    TokenWChar = 3,     //TokenSizes[3]
+    TokenWInt = 4,      //TokenSizes[4]
+    TokenMBChar = 5,    //TokenSizes[5]
+    TokenInt = 6        //TokenSizes[6]
+};
+static const int TokenEncodingSizes[8] = {
+    /*TokenDefault*/    TokenChar8,
+    /*TokenANSI*/       TokenChar8,
+    /*TokenUTF8*/       TokenChar8,
+    /*TokenUTF16*/      TokenChar16,
+    /*TokenUTF32*/      TokenChar32,
+    /*TokenUCS2*/       TokenChar16,
+    /*TokenUCS4*/       TokenChar32,
+    /*TokenShiftJIS*/   TokenMBChar
+};
+//static enum TokenEncoding {
+//    TokenDefault = 0,   //TokenEncodingSizes[0]
+//    TokenANSI = 1,      //TokenEncodingSizes[1]
+//    TokenUTF8 = 2,      //TokenEncodingSizes[2]
+//    TokenUTF16 = 3,     //TokenEncodingSizes[3]
+//    TokenUTF32 = 4,     //TokenEncodingSizes[4]
+//    TokenUCS2 = 5,      //TokenEncodingSizes[5]
+//    TokenUCS4 = 6,      //TokenEncodingSizes[6]
+//    TokenShiftJIS = 7   //TokenEncodingSizes[7]
+//};
+
+typedef struct CToken {
+    struct CTokenBase {
+        uint_fast8_t Encoding;
+        uint_fast8_t EncodingSize;
+        size_t Length;
+    };
+    union {
+        struct CTokenChar8Payload {
+            char* String;
+        } Char8;
+        struct CTokenChar16Payload {
+            char16_t* String;
+        } Char16;
+        struct CTokenChar32Payload {
+            char32_t* String;
+        } Char32;
+        struct CTokenWCharPayload {
+            wchar_t* String;
+        } WChar;
+        struct CTokenMBCharPayload {
+            mbchar_array_t* String;
+            size_t Bytes;
+        } MBChar;
+    };
+} CToken;
 
 typedef struct SourceFile SourceFile;
 struct SourceFile {
@@ -778,7 +843,7 @@ void tokenize(char* Filename, ParseMode Mode) {
     signed char temp = 0;
     signed char temp2;
 
-    FILE* ECL_IN_FILE = fopenWrapper(Filename, "r");
+    FILE* ECL_IN_FILE = fopenWrapper(Filename, "rb");
     int_fast8_t TokenizerMode = MainProcessor;
     StringStream ECL_Buffer = (StringStream){.String = NULL, .CurrentPos = NULL, .Pos = 0, .Size = 0};
     
@@ -787,7 +852,7 @@ void tokenize(char* Filename, ParseMode Mode) {
     //
     //TODO: Merge these two loops somehow. It *has* to be possible, right?
     //
-    while (temp = fgetc(ECL_IN_FILE), temp != EOF) {
+    /*while (temp = fgetc(ECL_IN_FILE), temp != EOF) {
         ++ECL_Buffer.Size;
         switch (temp) {
             case Trigraph:
@@ -808,12 +873,27 @@ void tokenize(char* Filename, ParseMode Mode) {
             default:
                 continue;
         }
-    }
+    }*/
+#ifndef SEEK_END_IS_STUPID
+    fseek(ECL_IN_FILE, 0, SEEK_END);
+#else
+    //Apparently it's not required to "meaningfully support" SEEK_END
+    //according to some documentation? Meh, have an option then.
+    while (fgetc(ECL_IN_FILE) != EOF);
+#endif
+    ECL_Buffer.Size = ftell(ECL_IN_FILE);
     rewind(ECL_IN_FILE);
-    ECL_Buffer.String = callocNonNull(ECL_Buffer.Size + 1, sizeof(char));
+    //Allocated size is +2 to allow enough space
+    //for an extra newline and a null terminator
+    ECL_Buffer.String = callocNonNull(ECL_Buffer.Size + 2, sizeof(wchar_t));
     size_t i;
+    size_t tempsize;
+    //wctrans("");
     for (i = 0; i < ECL_Buffer.Size; ++i) {
         temp = fgetc(ECL_IN_FILE);
+        if (temp == WEOF) {
+            break;
+        }
         switch (temp) {
             case Trigraph:
                 temp2 = ProcessTrigraph(ECL_IN_FILE);
@@ -836,6 +916,7 @@ void tokenize(char* Filename, ParseMode Mode) {
         }
     }
     fclose(ECL_IN_FILE);
+    ECL_Buffer.String[i] = '\n'; //This should be safe to do because the buffer was allocated a bit larger
     //
     //END PHASE 1 AND 2
     //

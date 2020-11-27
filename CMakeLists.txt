@@ -17,6 +17,6 @@ add_executable (ECLTest3 "ECLTest3.c" "ECLTest3.h"
                          "Mapping.c"
                          "Symbols.c" "Symbols.h"
                          "StringStream.c" "StringStream.h"
-                         "ArgParsing.c" "ArgParsing.h")
+                         "ArgParsing.c" "ArgParsing.h" "_RegisterWatch.h" "SquitStrings.c")
 
 # TODO: Add tests and install targets if needed.
